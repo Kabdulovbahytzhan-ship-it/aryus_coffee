@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aryus Coffee</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: url('https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+  background-size: cover;
+  color: #333;
+}
+.overlay { background-color: rgba(253,246,240,0.95); min-height: 100vh; }
+.container { width: 90%; max-width: 1200px; margin: auto; padding: 20px 0; }
+header {
+  background-color: rgba(107,79,79,0.9);
+  color: #fff;
+  padding: 20px 0;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:15px;
+}
+header h1 { margin:0; font-size:28px; }
+header .logo { height:60px; width:auto; }
+.tabs { display:flex; justify-content:center; margin:20px 0; flex-wrap:wrap; }
+.tab { background-color:#6b4f4f; color:#fff; padding:10px 20px; margin:5px; cursor:pointer; border-radius:5px 5px 0 0; transition:0.3s; }
+.tab:hover { background-color:#5a3f3f; }
+.tab.active { background-color:#4e3535; }
+.tab-content { display:none; padding:20px; }
+.tab-content.active { display:block; }
+.menu-items { display:flex; flex-wrap:wrap; justify-content:space-around; }
+.item { background-color:#fff1e6; padding:20px; margin:10px; border-radius:10px; flex:1 1 250px; box-shadow:0 4px 6px rgba(0,0,0,0.1); transition:0.3s; }
+.item:hover { transform:scale(1.05); }
+.item h3 { margin-top:0; color:#6b4f4f; }
+.quantity { display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+.quantity input { width:50px; text-align:center; padding:5px; }
+button.add-to-cart, button.order-now, button.add-review { margin-top:10px; background-color:#6b4f4f; color:#fff; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; }
+button.add-to-cart:hover, button.order-now:hover, button.add-review:hover { background-color:#5a3f3f; }
+#cart { position:fixed; top:20px; right:20px; background:#fff1e6; padding:15px; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.2); max-width:300px; z-index:100; }
+#cart h3 { margin-top:0; color:#6b4f4f; }
+form { max-width:500px; margin:auto; display:flex; flex-direction:column; }
+form input, form textarea, form button { margin:10px 0; padding:10px; font-size:1em; border-radius:5px; border:1px solid #ccc; }
+footer { background-color: rgba(107,79,79,0.9); color:#fff; text-align:center; padding:15px 0; }
+#welcomeModal { position:fixed; top:0; left:0; right:0; bottom:0; background-color: rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:200; }
+#welcomeModal .modal-content { background:#fff; padding:30px; border-radius:10px; text-align:center; max-width:500px; }
+#reviews { background:#fff1e6; padding:20px; border-radius:10px; margin:20px auto; max-width:800px; }
+#reviews h2 { color:#6b4f4f; text-align:center; }
+.review { background:#fff; padding:15px; margin:10px 0; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+.review p { margin:5px 0; }
+.review strong { color:#6b4f4f; }
+@media (max-width:768px) { 
+  .menu-items { flex-direction:column; align-items:center; } 
+  #cart { position:static; margin:20px auto; } 
+  header { flex-direction:column; gap:10px; }
+}
+</style>
+</head>
+<body>
+<div class="overlay">
+
+  <!-- Welcome Modal -->
+  <div id="welcomeModal">
+    <div class="modal-content">
+      <h2>Добро пожаловать в Aryus Coffee!</h2>
+      <p>Мы варим лучший кофе, готовим вкусные шаурмы, донеры и bubble tea!</p>
+      <button onclick="closeModal()">Войти на сайт</button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <h1>Aryus Coffee</h1>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-target="coffee">Кофе</div>
+    <div class="tab" data-target="shawarma">Шаурма / Донеры</div>
+    <div class="tab" data-target="reviews">Отзывы</div>
+    <div class="tab" data-target="contact">Контакты</div>
+  </div>
+
+  <!-- Cart -->
+  <div id="cart">
+    <h3>Корзина</h3>
+    <ul id="cartItems"></ul>
+    <p id="totalPrice">Итого: 0 ₸</p>
+    <button class="order-now" onclick="checkoutOrder()">Оформить заказ</button>
+  </div>
+
+  <!-- Кофе -->
+  <section id="coffee" class="tab-content active container">
+    <h2>Кофе</h2>
+    <div class="menu-items">
+      <div class="item"><h3>Эспрессо (36 мл)</h3><p>Классический эспрессо.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Эспрессо (36 мл)" data-price="600">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Американо</h3><p>Классический американо.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Американо" data-price="700">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Капучино</h3><p>Классический капучино.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Капучино" data-price="1090">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Латте</h3><p>Классический латте.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Латте" data-price="1090">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Раф</h3><p>Классический раф.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Раф" data-price="1250">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Флэт уайт (250 мл)</h3><p>Классический флэт уайт.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Флэт уайт (250 мл)" data-price="1000">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Моккачино</h3><p>Классический моккачино.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Моккачино" data-price="1200">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Сироп (в ассортименте)</h3><p>Добавьте вкус по желанию.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Сироп (в ассортименте)" data-price="150">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Альтернативное молоко</h3><p>Растительное молоко.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Альтернативное молоко" data-price="600">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Айс Американо</h3><p>Холодный американо.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Айс Американо" data-price="1200">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Айс Капучино</h3><p>Холодный капучино.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Айс Капучино" data-price="1490">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Айс Латте</h3><p>Холодный латте.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Айс Латте" data-price="1490">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Фраппучино</h3><p>Холодный кофе с молоком и сиропом.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Фраппучино" data-price="1490">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Урбеч</h3><p>Кофейный напиток с пастой орехов.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Урбеч" data-price="1800">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Эспрессо Тонник</h3><p>Эспрессо с тоником.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Эспрессо Тонник" data-price="1490">Добавить в корзину</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Шаурма / Донеры -->
+  <section id="shawarma" class="tab-content container">
+    <h2>Шаурма / Донеры</h2>
+    <div class="menu-items">
+      <div class="item"><h3>Люля в лаваше</h3><p>Классический люля-кебаб.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Люля в лаваше" data-price="2200">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Донер говяжий</h3><p>Классический донер с говядиной.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Донер говяжий" data-price="2000">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Донер ассорти</h3><p>Смешанный донер.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Донер ассорти" data-price="1900">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Донер с сыром</h3><p>Сырный донер.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Донер с сыром" data-price="2200">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Донер жареный</h3><p>Жареный донер.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Донер жареный" data-price="2200">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Люля в лаваше с сыром</h3><p>Люля с сыром.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Люля в лаваше с сыром" data-price="2400">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Донер говяжий с сыром</h3><p>Говяжий донер с сыром.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Донер говяжий с сыром" data-price="2300">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Донер куриный</h3><p>Классический куриный донер.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Донер куриный" data-price="1700">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Донер куриный с сыром</h3><p>Куриный донер с сыром.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Донер куриный с сыром" data-price="1900">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Донер куриный жареный</h3><p>Жареный куриный донер.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Донер куриный жареный" data-price="2000">Добавить в корзину</button>
+      </div>
+      <div class="item"><h3>Люля в лаваше жареный</h3><p>Жареный люля-кебаб.</p>
+        <div class="quantity"><label>Количество:</label><input type="number" value="1" min="1"></div>
+        <button class="add-to-cart" data-name="Люля в лаваше жареный" data-price="2300">Добавить в корзину</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Отзывы -->
+  <section id="reviews" class="tab-content container">
+    <h2>Отзывы наших клиентов</h2>
+    <form id="reviewForm">
+      <input type="text" id="reviewName" placeholder="Ваше имя" required>
+      <textarea id="reviewText" placeholder="Ваш отзыв" rows="3" required></textarea>
+      <button type="submit" class="add-review">Добавить отзыв</button>
+    </form>
+    <div id="reviewsList"></div>
+  </section>
+
+  <!-- Контакты -->
+  <section id="contact" class="tab-content container">
+    <h2>Связаться с нами</h2>
+    <form id="contactForm">
+      <input type="text" placeholder="Ваше имя" required>
+      <input type="email" placeholder="Ваш email" required>
+      <textarea placeholder="Сообщение" rows="5" required></textarea>
+      <button type="submit">Отправить</button>
+    </form>
+    <p style="text-align:center; margin-top:20px;">
+      Адрес: г. Атырау, ул. Примерная, 10 | Телефон: +7 707 441 06 76 | Email: info@aryuscoffee.kz
+    </p>
+  </section>
+
+  <footer><p>&copy; 2026 Aryus Coffee. Все права защищены.</p></footer>
+</div>
+
+<script>
+// ================== Модальное окно ==================
+function closeModal(){ document.getElementById('welcomeModal').style.display='none'; }
+
+// ================== Вкладки ==================
+const tabs = document.querySelectorAll('.tab');
+const contents = document.querySelectorAll('.tab-content');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.target).classList.add('active');
+  });
+});
+
+// ================== Корзина ==================
+const cartList = document.getElementById('cartItems');
+const totalPriceEl = document.getElementById('totalPrice');
+let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+function updateCart(){
+  cartList.innerHTML = '';
+  let total = 0;
+  cartItems.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = `${item.item} x ${item.quantity} = ${item.price*item.quantity} ₸`;
+    cartList.appendChild(li);
+    total += item.price * item.quantity;
+  });
+  totalPriceEl.textContent = `Итого: ${total} ₸`;
+  localStorage.setItem('cartItems', JSON.stringify(cartItems));
+}
+
+// Добавление товара в корзину
+function initAddToCartButtons(){
+  document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.onclick = () => {
+      const parent = btn.closest('.item');
+      const name = btn.dataset.name;
+      const price = parseInt(btn.dataset.price);
+      const qty = parseInt(parent.querySelector('input[type="number"]').value);
+      const exist = cartItems.find(i => i.item === name);
+      if(exist){ exist.quantity += qty; } else { cartItems.push({item:name, price:price, quantity:qty}); }
+      updateCart();
+    }
+  });
+}
+initAddToCartButtons();
+
+// Оформление заказа через WhatsApp
+function checkoutOrder(){
+  if(cartItems.length===0){ alert("Корзина пуста!"); return; }
+  let text = "Новый заказ Aryus Coffee:\n";
+  let total = 0;
+  cartItems.forEach(i => {
+    text += `${i.item} x ${i.quantity} = ${i.price*i.quantity} ₸\n`;
+    total += i.price*i.quantity;
+  });
+  text += `Итого: ${total} ₸`;
+  window.open(`https://wa.me/77074410676?text=${encodeURIComponent(text)}`,"_blank");
+}
+
+// ================== Отзывы ==================
+const reviewForm=document.getElementById('reviewForm');
+const reviewsList=document.getElementById('reviewsList');
+let reviews=JSON.parse(localStorage.getItem('reviews')) || [];
+function renderReviews(){
+  reviewsList.innerHTML='';
+  reviews.forEach(r=>{
+    const div=document.createElement('div');
+    div.className='review';
+    div.innerHTML=`<p>${r.text}</p><p><strong>- ${r.name}</strong></p>`;
+    reviewsList.appendChild(div);
+  });
+}
+reviewForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  const name=document.getElementById('reviewName').value.trim();
+  const text=document.getElementById('reviewText').value.trim();
+  if(name && text){ reviews.push({name,text}); localStorage.setItem('reviews',JSON.stringify(reviews)); renderReviews(); reviewForm.reset(); }
+});
+renderReviews();
+
+// ================== Контакты ==================
+const contactForm=document.getElementById('contactForm');
+contactForm.addEventListener('submit',e=>{
+  e.preventDefault();
+  alert("Спасибо! Ваше сообщение отправлено.");
+  contactForm.reset();
+});
+
+// ================== Админка ==================
+let adminMode = false;
+const adminBtn = document.createElement('button');
+adminBtn.textContent = 'Админ';
+adminBtn.style.position = 'fixed';
+adminBtn.style.top = '15px';
+adminBtn.style.left = '15px';
+adminBtn.style.zIndex = '9999';
+adminBtn.style.background = '#6b4f4f';
+adminBtn.style.color = '#fff';
+adminBtn.style.border = 'none';
+adminBtn.style.padding = '8px 14px';
+adminBtn.style.borderRadius = '6px';
+adminBtn.style.cursor = 'pointer';
+document.body.appendChild(adminBtn);
+
+let addBtn, exitBtn;
+
+adminBtn.onclick = () => {
+  if(!adminMode){
+    const pass = prompt('Введите пароль администратора:');
+    if(pass === 'адема555.4'){
+      adminMode = true;
+      alert('Режим администратора включён');
+
+      document.querySelectorAll('.item').forEach(card=>{
+        if(!card.querySelector('.admin-del')){
+          const del = document.createElement('button');
+          del.textContent = '❌ Удалить';
+          del.className = 'admin-del';
+          del.style.marginTop = '8px';
+          del.style.background = '#a33';
+          del.style.color = '#fff';
+          del.style.border = 'none';
+          del.style.padding = '5px 8px';
+          del.style.cursor = 'pointer';
+          del.onclick = ()=> card.remove();
+          card.appendChild(del);
+        }
+      });
+
+      addBtn = document.createElement('button');
+      addBtn.textContent = '➕ Добавить товар';
+      addBtn.style.position = 'fixed';
+      addBtn.style.top = '60px';
+      addBtn.style.left = '15px';
+      addBtn.style.zIndex = '9999';
+      addBtn.style.background = '#4CAF50';
+      addBtn.style.color = '#fff';
+      addBtn.style.border = 'none';
+      addBtn.style.padding = '8px 14px';
+      addBtn.style.borderRadius = '6px';
+      addBtn.style.cursor = 'pointer';
+      document.body.appendChild(addBtn);
+
+      addBtn.onclick = () => {
+        const form = document.createElement('div');
+        form.style.position = 'fixed';
+        form.style.top = '50%';
+        form.style.left = '50%';
+        form.style.transform = 'translate(-50%, -50%)';
+        form.style.background = '#fff';
+        form.style.padding = '20px';
+        form.style.border = '2px solid #6b4f4f';
+        form.style.borderRadius = '10px';
+        form.style.zIndex = '10000';
+        form.innerHTML = `
+          <h3>Добавить товар</h3>
+          <input type="text" placeholder="Название" id="newName" style="margin-bottom:5px;"><br>
+          <input type="number" placeholder="Цена" id="newPrice" style="margin-bottom:5px;"><br>
+          <button id="submitNewItem">Добавить</button>
+          <button id="cancelNewItem">Отмена</button>
+        `;
+        document.body.appendChild(form);
+
+        form.querySelector('#submitNewItem').onclick = ()=>{
+          const name = form.querySelector('#newName').value.trim();
+          const price = parseInt(form.querySelector('#newPrice').value);
+          if(!name || !price){ alert('Заполните все поля'); return; }
+
+          const newItem = document.createElement('div');
+          newItem.className = 'item';
+          newItem.innerHTML = `
+            <h3>${name}</h3>
+            <p>Описание нового товара.</p>
+            <div class="quantity">
+              <label>Количество:</label>
+              <input type="number" value="1" min="1">
+            </div>
+            <button class="add-to-cart" data-name="${name}" data-price="${price}">Добавить в корзину</button>
+          `;
+
+          const del = document.createElement('button');
+          del.textContent = '❌ Удалить';
+          del.className = 'admin-del';
+          del.style.marginTop = '8px';
+          del.style.background = '#a33';
+          del.style.color = '#fff';
+          del.style.border = 'none';
+          del.style.padding = '5px 8px';
+          del.style.cursor = 'pointer';
+          del.onclick = ()=> newItem.remove();
+          newItem.appendChild(del);
+
+          document.querySelector('.tab-content.active .menu-items').appendChild(newItem);
+          initAddToCartButtons();
+          form.remove();
+        };
+        form.querySelector('#cancelNewItem').onclick = ()=> form.remove();
+      };
+
+      exitBtn = document.createElement('button');
+      exitBtn.textContent = '🚪 Выйти из админки';
+      exitBtn.style.position = 'fixed';
+      exitBtn.style.top = '110px';
+      exitBtn.style.left = '15px';
+      exitBtn.style.zIndex = '9999';
+      exitBtn.style.background = '#f44336';
+      exitBtn.style.color = '#fff';
+      exitBtn.style.border = 'none';
+      exitBtn.style.padding = '8px 14px';
+      exitBtn.style.borderRadius = '6px';
+      exitBtn.style.cursor = 'pointer';
+      document.body.appendChild(exitBtn);
+
+      exitBtn.onclick = ()=>{
+        adminMode = false;
+        addBtn.remove();
+        exitBtn.remove();
+        document.querySelectorAll('.admin-del').forEach(b=>b.remove());
+      };
+
+    } else { alert('Неверный пароль!'); }
+  }
+};
+</script>
+</body>
+</html>
